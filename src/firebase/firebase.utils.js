@@ -13,6 +13,35 @@ const config = {
   measurementId: "G-ZZ8TJV79EL"
 };
 
+//this method is to store the data into database, that was received from the authentication API
+export const createUserProfileDocument = async (userAuth, additionalData) => {
+  if (!userAuth) return;
+
+  //query reference (could be collection reference or document reference )
+  const userRef = firestore.doc(`users/${userAuth.uid}`);
+
+  //document snapshot, has exist property
+  const snapshot = await userRef.get();
+
+  if (!snapshot.exists) {
+    const { displayName, email } = userAuth;
+    const createdAt = new Date();
+
+    try {
+      await userRef.set({
+        displayName,
+        email,
+        createdAt,
+        ...additionalData
+      });
+    } catch (error) {
+      console.log("error creating user", error.message);
+    }
+  }
+
+  return userRef;
+};
+
 firebase.initializeApp(config);
 
 export const auth = firebase.auth();
